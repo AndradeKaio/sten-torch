@@ -1,4 +1,4 @@
-import os
+import sys
 import torch, time, sten
 from sparsifier import RandomSparsifier
 
@@ -29,7 +29,8 @@ def build_sten(model):
     return sb.get_sparse_model(model)
 
 def main():
-    device = torch.device("cuda" if torch.cuda.is_available() and sys.argv[1] == "cuda" else "cpu")
+    device_arg = sys.argv[1] if len(sys.argv) > 1 else None
+    device = torch.device("cuda" if torch.cuda.is_available() and device_arg == "cuda" else "cpu")
     print(f"========={device}=========")
 
     model = torch.hub.load('huggingface/pytorch-transformers',
