@@ -6,7 +6,7 @@ class RandomSparsifier:
     def __init__(self, sparsity: float):
         self.sparsity = sparsity
 
-    def sparsify(self, input_tensor: torch.Tensor) -> torch.Tensor:
+    def random(self, input_tensor: torch.Tensor) -> torch.Tensor:
         mask = torch.rand(input_tensor.shape) > self.sparsity
         return input_tensor * mask
     
@@ -26,7 +26,7 @@ class RandomSparsifier:
     sparsifier=RandomSparsifier, inp=torch.Tensor, out=sten.CsrTensor
 )
 def torch_tensor_to_csr_random_sparsifier(sparsifier, tensor, grad_fmt=None):
-    #sparsified_tensor = sparsifier.sparsify(tensor) 
+    #sparsified_tensor = sparsifier.random(tensor) 
     sparsified_tensor = sparsifier.l1_unstructured(tensor)
     return sten.SparseTensorWrapper.wrapped_from_dense(
         sten.CsrTensor(sparsified_tensor.to_sparse_csr()),
