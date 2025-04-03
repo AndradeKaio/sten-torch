@@ -34,7 +34,7 @@ def main():
     print(f"========={device}=========")
 
     model = torch.hub.load('huggingface/pytorch-transformers',
-        'model', 'bert-base-uncased').encoder.layer[0]
+        'model', 'bert-base-uncased').encoder.layer[0].to(device)
 
     torch.manual_seed(123)
     input_shape = (8, 128, 768)
