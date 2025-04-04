@@ -7,7 +7,7 @@ class RandomSparsifier:
         self.sparsity = sparsity
         self.pruning: str = pruning
 
-    def random(self, input_tensor: torch.Tensor) -> torch.Tensor:
+    def random_unstructure(self, input_tensor: torch.Tensor) -> torch.Tensor:
         device = "cuda" if input_tensor.get_device() >= 0 else "cpu"
         mask = torch.rand(input_tensor.shape, device=device) > self.sparsity
         return input_tensor * mask
@@ -24,14 +24,39 @@ class RandomSparsifier:
 
         return input_tensor * mask
 
+    def nm_random_structure(self, input_tensor: torch.Tensor, n: int = 2, m: int = 4, dim: int = 1) -> torch.Tensor:
+        tensor = input_tensor.clone()
+        shape = tensor.shape
+        assert shape[dim] % m == 0, f"Dimension {dim} must be divisible by group size m={m}"
+
+        perm = list(range(tensor.dim()))
+        perm[dim], perm[-1] = perm[-1], perm[dim]
+        tensor = tensor.permute(perm)
+
+        flat = tensor.reshape(-1, shape[dim])
+        mask = torch.zeros_like(flat)
+
+        for row in range(flat.size(0)):
+            for group_start in range(0, shape[dim], m):
+                idxs = torch.randperm(m)[:n] + group_start
+                mask[row, idxs] = 1
+
+        pruned = flat * mask
+        pruned = pruned.reshape(*tensor.shape)
+        pruned = pruned.permute(perm)
+        return pruned
+
+
 @sten.register_sparsifier_implementation(
     sparsifier=RandomSparsifier, inp=torch.Tensor, out=sten.CsrTensor
 )
 def torch_tensor_to_csr_random_sparsifier(sparsifier, tensor, grad_fmt=None):
     if sparsifier.pruning == "urandom":
-        sparsified_tensor = sparsifier.random(tensor) 
-    else:
+        sparsified_tensor = sparsifier.random_unstructure(tensor) 
+    elif sparsifier.pruning == "l1":
         sparsified_tensor = sparsifier.l1_unstructured(tensor)
+    else:
+        sparsified_tensor = sparsifier.nm_random_structure(tensor)
 
     return sten.SparseTensorWrapper.wrapped_from_dense(
         sten.CsrTensor(sparsified_tensor.to_sparse_csr()),
