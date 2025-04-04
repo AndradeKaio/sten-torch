@@ -66,6 +66,19 @@ def run_sten_bench(pruning: str, test_name: str, number_of_runs: int, sparsity_l
             )
             file.write(f"sparsity:{sparsity}, time:{t}\n")
 
+def run_torch_bench(test_name: str, number_of_runs: int, model, input_f, device, enable_compile: bool = False):
+    if enable_compile:
+        model = torch.compile(model)
+    with open(f"torch-comp{str(enable_compile).lower()}-{test_name}-{device}.txt", "wt") as file:
+        t = bench_model(
+            model=model,
+            input_t=input_f(device),
+            test_name=test_name,
+            n=number_of_runs,
+        )
+        file.write(str(t))
+
+
 def main():
     device_arg = sys.argv[1] if len(sys.argv) > 1 else None
     pruning = sys.argv[2] if len(sys.argv) > 2 else "urandom"

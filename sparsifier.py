@@ -46,6 +46,26 @@ class RandomSparsifier:
         pruned = pruned.permute(perm)
         return pruned
 
+    def random_structure(self, input_tensor: torch.Tensor, sparsity) -> torch.Tensor:
+        #pruning rows only
+        n_channels = input_tensor.shape[0]
+        to_prune = int(n_channels * sparsity)
+        if not to_prune:
+            return input_tensor
+
+        selected = torch.rand(n_channels)
+        threshold = torch.kthvalue(selected, k=to_prune).values
+        rows_to_keep = selected > threshold
+
+        mask = torch.zeros_like(input_tensor)
+        indexer = [slice(None)] * input_tensor.ndim
+
+        for i, keep in enumerate(rows_to_keep):
+            if keep:
+                indexer[0] = i
+                mask[tuple(indexer)] = 1
+        return mask * input_tensor
+
 
 @sten.register_sparsifier_implementation(
     sparsifier=RandomSparsifier, inp=torch.Tensor, out=sten.CsrTensor
