@@ -3,8 +3,9 @@ import sten
 
 
 class RandomSparsifier:
-    def __init__(self, sparsity: float):
+    def __init__(self, sparsity: float, pruning: str = "urandom"):
         self.sparsity = sparsity
+        self.pruning: str = pruning
 
     def random(self, input_tensor: torch.Tensor) -> torch.Tensor:
         mask = torch.rand(input_tensor.shape) > self.sparsity
@@ -26,8 +27,11 @@ class RandomSparsifier:
     sparsifier=RandomSparsifier, inp=torch.Tensor, out=sten.CsrTensor
 )
 def torch_tensor_to_csr_random_sparsifier(sparsifier, tensor, grad_fmt=None):
-    #sparsified_tensor = sparsifier.random(tensor) 
-    sparsified_tensor = sparsifier.l1_unstructured(tensor)
+    if sparsifier.pruning == "urandom":
+        sparsified_tensor = sparsifier.random(tensor) 
+    else:
+        sparsified_tensor = sparsifier.l1_unstructured(tensor)
+
     return sten.SparseTensorWrapper.wrapped_from_dense(
         sten.CsrTensor(sparsified_tensor.to_sparse_csr()),
         tensor,
