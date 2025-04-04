@@ -75,8 +75,10 @@ def torch_tensor_to_csr_random_sparsifier(sparsifier, tensor, grad_fmt=None):
         sparsified_tensor = sparsifier.random_unstructure(tensor) 
     elif sparsifier.pruning == "l1":
         sparsified_tensor = sparsifier.l1_unstructured(tensor)
-    else:
+    elif sparsifier.pruning == "nm":
         sparsified_tensor = sparsifier.nm_random_structure(tensor)
+    else:
+        sparsified_tensor = sparsifier.random_structure(tensor)
 
     return sten.SparseTensorWrapper.wrapped_from_dense(
         sten.CsrTensor(sparsified_tensor.to_sparse_csr()),
