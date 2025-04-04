@@ -11,7 +11,6 @@ def get_input(device):
     input_shape = (8, 128, 768)
     return torch.rand(input_shape, device=device)
 
-
 def get_e2e_input(device, seq_length=128, batch_size=8):
     model_name = "bert-base-uncased"
     tokenizer = BertTokenizer.from_pretrained(model_name)
@@ -52,7 +51,6 @@ def build_sten(model, sparsity: float = 0.1):
             )
     return sb.get_sparse_model(model)
 
-
 def run_bench(name: str, number_of_runs: int, sparsity_levels: List[float], model, input_f, device):
     with open(f"bert-base-uncased-{name}.txt", "wt") as file:
         for sparsity in sparsity_levels:
@@ -66,9 +64,6 @@ def run_bench(name: str, number_of_runs: int, sparsity_levels: List[float], mode
                     n=number_of_runs
             )
             file.write(f"sparsity:{sparsity}, time:{t}\n")
-    
-
-
 
 def main():
     device_arg = sys.argv[1] if len(sys.argv) > 1 else None

@@ -8,7 +8,8 @@ class RandomSparsifier:
         self.pruning: str = pruning
 
     def random(self, input_tensor: torch.Tensor) -> torch.Tensor:
-        mask = torch.rand(input_tensor.shape) > self.sparsity
+        device = "cuda" if input_tensor.get_device() >= 0 else "cpu"
+        mask = torch.rand(input_tensor.shape, device=device) > self.sparsity
         return input_tensor * mask
     
     def l1_unstructured(self, input_tensor: torch.Tensor) -> torch.Tensor:
