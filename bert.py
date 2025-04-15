@@ -25,14 +25,21 @@ def bench_model(model, input_t, test_name: str, n: int = 1) -> float:
     total = 0
     if test_name == "full":
         input_ids, attention_mask = input_t
+        model(input_ids, attention_mask=attention_mask)
+        torch.cuda.synchronize()
+
         for _ in range(n):
             start = time.time()
             model(input_ids, attention_mask=attention_mask)
+            torch.cuda.synchronize()
             total += time.time() - start
     else:
+        model(input_t)
+        torch.cuda.synchronize()
         for _ in range(n):
             start = time.time()
             model(input_t)
+            torch.cuda.synchronize()
             total += time.time() - start
     final = total / n
     print("time:", final)
