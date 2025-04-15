@@ -96,15 +96,25 @@ def main():
     sparsity_levels = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
 
     for model, input_func, name in model_list:
-        run_sten_bench(
-            pruning=pruning,
-            test_name=name,
-            number_of_runs=5,
-            sparsity_levels=sparsity_levels,
-            model=model,
-            input_f=input_func,
-            device=device
+        if "comp" in pruning:
+            run_torch_bench(
+                test_name=name,
+                number_of_runs=5,
+                model=model,
+                input_f=input_func,
+                device=device,
+                enable_compile=True if pruning == "compile" else False,
         )
+        else:
+            run_sten_bench(
+                pruning=pruning,
+                test_name=name,
+                number_of_runs=5,
+                sparsity_levels=sparsity_levels,
+                model=model,
+                input_f=input_func,
+                device=device
+            )
 
 if __name__ == "__main__":
     main()

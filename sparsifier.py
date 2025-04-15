@@ -46,10 +46,10 @@ class RandomSparsifier:
         pruned = pruned.permute(perm)
         return pruned
 
-    def random_structure(self, input_tensor: torch.Tensor, sparsity) -> torch.Tensor:
+    def random_structure(self, input_tensor: torch.Tensor) -> torch.Tensor:
         #pruning rows only
         n_channels = input_tensor.shape[0]
-        to_prune = int(n_channels * sparsity)
+        to_prune = int(n_channels * self.sparsity)
         if not to_prune:
             return input_tensor
 
