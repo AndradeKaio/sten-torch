@@ -3,6 +3,7 @@ import sys
 import torch, time, sten
 from sparsifier import RandomSparsifier
 from transformers import BertTokenizer
+from torch.profiler import profile, ProfilerActivity
 
 
 
@@ -27,20 +28,23 @@ def bench_model(model, input_t, test_name: str, n: int = 1) -> float:
         input_ids, attention_mask = input_t
         model(input_ids, attention_mask=attention_mask)
         torch.cuda.synchronize()
-
-        for _ in range(n):
-            start = time.time()
-            model(input_ids, attention_mask=attention_mask)
-            torch.cuda.synchronize()
-            total += time.time() - start
+        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True) as prof:
+            for _ in range(n):
+                start = time.time()
+                model(input_ids, attention_mask=attention_mask)
+                torch.cuda.synchronize()
+                total += time.time() - start
+        print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
     else:
         model(input_t)
         torch.cuda.synchronize()
-        for _ in range(n):
-            start = time.time()
-            model(input_t)
-            torch.cuda.synchronize()
-            total += time.time() - start
+        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True) as prof:
+            for _ in range(n):
+                start = time.time()
+                model(input_t)
+                torch.cuda.synchronize()
+                total += time.time() - start
+    print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
     final = total / n
     print("time:", final)
     return final
