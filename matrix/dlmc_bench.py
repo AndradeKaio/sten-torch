@@ -40,9 +40,8 @@ def main():
             subdir_len = len(os.listdir(pruning_path))
             print(f"{sparsity} - {idx1}/{subdir_len}", end='\r')
 
-            with open(f"{result_dir}/{sparsity}.txt", "wt") as file:
+            with open(f"{result_dir}{sparsity}.txt", "wt") as file:
                 subdir_path = os.path.join(pruning_path, sparsity)
-                print(subdir_path)
                 if os.path.isdir(subdir_path):
                     for idx2, matrix in enumerate(os.listdir(subdir_path)):
                         subdir_len2 = len(os.listdir(subdir_path))
