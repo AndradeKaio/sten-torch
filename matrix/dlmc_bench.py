@@ -1,5 +1,12 @@
 import torch
+import os
 import time
+
+
+def get_tensors(file_path: str):
+    sparse = load_dlmc(file_path)
+    dense = torch.ones(sparse.shape)
+    return sparse, dense
 
 
 def load_dlmc(file_path: str) -> torch.Tensor:
@@ -13,12 +20,18 @@ def load_dlmc(file_path: str) -> torch.Tensor:
     return csr_tensor
 
 def main():
-    sparse = load_dlmc("/Users/kaio/Downloads/dlmc/transformer/random_pruning/0.98/body_decoder_layer_0_encdec_attention_multihead_attention_k_fully_connected.smtx")
-    print(sparse)
-    dense = torch.ones(sparse.shape)
-    cpu = benchmark_cpu(sparse, dense)
-    #gpu = benchmark_gpu(sparse.to('cuda'), dense.to('cuda'))
-    print(cpu)
+    root_dir = "/Users/kaio/Downloads/dlmc/transformer/random_pruning/"
+    for subdir in os.listdir(root_dir):
+        with open(f"{subdir}.txt", "wt") as file:
+            subdir_path = os.path.join(root_dir, subdir)
+            if os.path.isdir(subdir_path):
+                for filename in os.listdir(subdir_path):
+                    file_path = os.path.join(subdir_path, filename)
+                    if os.path.isfile(file_path):
+                        sparse, dense = get_tensors(file_path)
+                        cpu = benchmark_cpu(sparse, dense.T)
+                        gpu = benchmark_gpu(sparse.to('cuda'), dense.to('cuda'))
+                        file.write(f"{file_path}, {cpu}, {gpu}\n")
 
 def benchmark_cpu(A, B, num_repeats=10):
     times = []
@@ -34,7 +47,6 @@ def benchmark_cpu(A, B, num_repeats=10):
     return avg_time
 
 def benchmark_gpu(A, B, num_repeats=10):
-    print(A, B)
     if not torch.cuda.is_available():
         return []
 
