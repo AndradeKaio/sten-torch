@@ -7,16 +7,9 @@ def load_dlmc(file_path: str) -> torch.Tensor:
         lines = file.readlines()
 
     rows, cols, nnz = map(int, lines[0].split(', '))
-    col_indexes = list(map(int, lines[2].split()))
-    row_indexes = [0]
-    n = 0
-    count = 0
-    for ele in col_indexes:
-        if ele < n:
-            count += 1
-            row_indexes.append(count)
-        n = ele
-    csr_tensor = torch.sparse_csr_tensor(row_indexes, col_indexes, torch.ones(nnz), size=(rows, cols))
+    crow_indices = list(map(int, lines[1].split()))
+    col_indices = list(map(int, lines[2].split()))
+    csr_tensor = torch.sparse_csr_tensor(crow_indices, col_indices, torch.ones(nnz), size=(rows, cols))
     return csr_tensor
 
 def main():
@@ -24,8 +17,8 @@ def main():
     print(sparse)
     dense = torch.ones(sparse.shape)
     cpu = benchmark_cpu(sparse, dense)
-    gpu = benchmark_gpu(sparse.to('cuda'), dense.to('cuda'))
-    print(cpu, gpu)
+    #gpu = benchmark_gpu(sparse.to('cuda'), dense.to('cuda'))
+    print(cpu)
 
 def benchmark_cpu(A, B, num_repeats=10):
     times = []
@@ -41,6 +34,7 @@ def benchmark_cpu(A, B, num_repeats=10):
     return avg_time
 
 def benchmark_gpu(A, B, num_repeats=10):
+    print(A, B)
     if not torch.cuda.is_available():
         return []
 
