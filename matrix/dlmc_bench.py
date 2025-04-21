@@ -1,3 +1,4 @@
+import pathlib
 import torch
 import os
 import time
@@ -22,22 +23,36 @@ def load_dlmc(file_path: str) -> torch.Tensor:
     return csr_tensor
 
 def main():
-    root_dir = "/workspace/sten/sten-torch/dlmc/transformer/random_pruning/"
-    for idx, subdir in enumerate(os.listdir(root_dir)):
-        subdir_len = len(os.listdir(root_dir))
-        print(f"{subdir} - {idx}/{subdir_len}", end='\r')
-        with open(f"{subdir}.txt", "wt") as file:
-            subdir_path = os.path.join(root_dir, subdir)
-            if os.path.isdir(subdir_path):
-                for idx2, filename in enumerate(os.listdir(subdir_path)):
-                    subdir_len2 = len(os.listdir(subdir_path))
-                    print(f"{subdir} - {idx2}/{subdir_len2}", end='\r')
-                    file_path = os.path.join(subdir_path, filename)
-                    if os.path.isfile(file_path):
-                        sparse, dense = get_tensors(file_path)
-                        cpu = benchmark_cpu(sparse, dense, 5)
-                        gpu = benchmark_gpu(sparse.to('cuda'), dense.to('cuda'), 5)
-                        file.write(f"{file_path}, {cpu}, {gpu}\n")
+    # root_dir = "/workspace/sten/sten-torch/dlmc/transformer/"
+    root_dir = "/Users/kaio/Downloads/dlmc/transformer/"
+    dest_dir = pathlib.Path(__file__).parent.resolve()
+
+    for idx, pruning in enumerate(os.listdir(root_dir)):
+        dir_len = len(os.listdir(root_dir))
+        print(f"{pruning} - {idx}/{dir_len}", end='\r')
+        pruning_path = os.path.join(root_dir, pruning)
+
+        result_dir = f"{dest_dir}/{pruning}/"
+        if not os.path.exists(result_dir):
+            os.makedirs(result_dir)
+
+        for idx1, sparsity in enumerate(os.listdir(pruning_path)):
+            subdir_len = len(os.listdir(pruning_path))
+            print(f"{sparsity} - {idx1}/{subdir_len}", end='\r')
+
+            with open(f"{result_dir}/{sparsity}.txt", "wt") as file:
+                subdir_path = os.path.join(pruning_path, sparsity)
+                print(subdir_path)
+                if os.path.isdir(subdir_path):
+                    for idx2, matrix in enumerate(os.listdir(subdir_path)):
+                        subdir_len2 = len(os.listdir(subdir_path))
+                        print(f"{sparsity} - {idx2}/{subdir_len2}", end='\r')
+                        file_path = os.path.join(subdir_path, matrix)
+                        if os.path.isfile(file_path):
+                            sparse, dense = get_tensors(file_path)
+                            cpu = benchmark_cpu(sparse, dense, 5)
+                            gpu = benchmark_gpu(sparse.to('cuda'), dense.to('cuda'), 5)
+                            file.write(f"{file_path}, {cpu}, {gpu}\n")
 
 def benchmark_cpu(A, B, num_repeats=10):
     times = []
