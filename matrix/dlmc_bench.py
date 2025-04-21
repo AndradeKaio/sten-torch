@@ -25,18 +25,18 @@ def main():
     root_dir = "/workspace/sten/sten-torch/dlmc/transformer/random_pruning/"
     for idx, subdir in enumerate(os.listdir(root_dir)):
         subdir_len = len(os.listdir(root_dir))
-        print(f"{subdir} - {idx}/{subdir_len}")
+        print(f"{subdir} - {idx}/{subdir_len}", end='\r')
         with open(f"{subdir}.txt", "wt") as file:
             subdir_path = os.path.join(root_dir, subdir)
             if os.path.isdir(subdir_path):
                 for idx2, filename in enumerate(os.listdir(subdir_path)):
                     subdir_len2 = len(os.listdir(subdir_path))
-                    print(f"{subdir} - {idx2}/{subdir_len2}")
+                    print(f"{subdir} - {idx2}/{subdir_len2}", end='\r')
                     file_path = os.path.join(subdir_path, filename)
                     if os.path.isfile(file_path):
                         sparse, dense = get_tensors(file_path)
-                        cpu = benchmark_cpu(sparse, dense)
-                        gpu = benchmark_gpu(sparse.to('cuda'), dense.to('cuda'))
+                        cpu = benchmark_cpu(sparse, dense, 5)
+                        gpu = benchmark_gpu(sparse.to('cuda'), dense.to('cuda'), 5)
                         file.write(f"{file_path}, {cpu}, {gpu}\n")
 
 def benchmark_cpu(A, B, num_repeats=10):
