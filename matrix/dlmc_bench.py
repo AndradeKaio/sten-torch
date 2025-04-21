@@ -3,9 +3,11 @@ import os
 import time
 
 
+
 def get_tensors(file_path: str):
     sparse = load_dlmc(file_path)
-    dense = torch.ones(sparse.shape)
+    rows, cols = sparse.shape
+    dense = torch.ones(cols, rows)
     return sparse, dense
 
 
@@ -20,16 +22,20 @@ def load_dlmc(file_path: str) -> torch.Tensor:
     return csr_tensor
 
 def main():
-    root_dir = "/Users/kaio/Downloads/dlmc/transformer/random_pruning/"
-    for subdir in os.listdir(root_dir):
+    root_dir = "/workspace/sten/sten-torch/dlmc/transformer/random_pruning/"
+    for idx, subdir in enumerate(os.listdir(root_dir)):
+        subdir_len = len(os.listdir(root_dir))
+        print(f"{subdir} - {idx}/{subdir_len}")
         with open(f"{subdir}.txt", "wt") as file:
             subdir_path = os.path.join(root_dir, subdir)
             if os.path.isdir(subdir_path):
-                for filename in os.listdir(subdir_path):
+                for idx2, filename in enumerate(os.listdir(subdir_path)):
+                    subdir_len2 = len(os.listdir(subdir_path))
+                    print(f"{subdir} - {idx2}/{subdir_len2}")
                     file_path = os.path.join(subdir_path, filename)
                     if os.path.isfile(file_path):
                         sparse, dense = get_tensors(file_path)
-                        cpu = benchmark_cpu(sparse, dense.T)
+                        cpu = benchmark_cpu(sparse, dense)
                         gpu = benchmark_gpu(sparse.to('cuda'), dense.to('cuda'))
                         file.write(f"{file_path}, {cpu}, {gpu}\n")
 
